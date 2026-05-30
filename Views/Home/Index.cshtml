@@ -1,0 +1,330 @@
+@model Velora.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Premium Fashion & Lifestyle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO SECTION
+═══════════════════════════════════════════════════════════════ -->
+<section class="hero-section">
+  @if (Model.Banners.Any())
+  {
+    int i = 0;
+    foreach (var banner in Model.Banners)
+        {
+            <div class="hero-slide @(i == 0 ? "active" : "")"
+                 style="position:absolute; inset:0; display:@(i == 0 ? "block" : "none");">
+                <div class="hero-bg" style="background-image:url('@banner.ImageUrl')"></div>
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+          <div class="row">
+            <div class="col-lg-7 col-xl-6">
+              <div class="hero-eyebrow animate-fadeInUp">New Collection @DateTime.Now.Year</div>
+              <h1 class="hero-title animate-fadeInUp delay-100">@banner.Title</h1>
+              <p class="hero-subtitle animate-fadeInUp delay-200">@banner.Subtitle</p>
+              <div class="hero-cta animate-fadeInUp delay-300">
+                <a href="@(banner.LinkUrl ?? "/shop")" class="btn-velora-primary">
+                  @(banner.ButtonText ?? "Shop Now") <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a asp-controller="Home" asp-action="About" class="btn-velora-outline">Our Story</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      i++;
+    }
+  }
+  else
+  {
+    <div class="hero-bg" style="background-image:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600')"></div>
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="hero-eyebrow animate-fadeInUp">New Collection @DateTime.Now.Year</div>
+          <h1 class="hero-title animate-fadeInUp delay-100">Dress With <span>Purpose</span></h1>
+          <p class="hero-subtitle animate-fadeInUp delay-200">Discover premium fashion curated for those who believe style is a form of self-expression.</p>
+          <div class="hero-cta animate-fadeInUp delay-300">
+            <a asp-controller="Shop" asp-action="Index" class="btn-velora-primary">Shop Now <i class="fa-solid fa-arrow-right"></i></a>
+            <a asp-controller="Home" asp-action="About" class="btn-velora-outline">Our Story</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (Model.Banners.Count() > 1)
+  {
+    <div class="hero-indicators">
+      @for (int j = 0; j < Model.Banners.Count(); j++)
+      {
+        <button class="hero-dot @(j == 0 ? "active" : "")"></button>
+      }
+    </div>
+  }
+
+  <!-- Scroll Indicator -->
+  <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);text-align:center;z-index:10;">
+    <div style="font-size:.65rem;letter-spacing:.2em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:8px;">Scroll</div>
+    <div style="width:1px;height:40px;background:linear-gradient(to bottom,rgba(255,255,255,.3),transparent);margin:0 auto;"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CATEGORIES
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow">Shop By</span>
+      <h2 class="section-title">Our <span>Collections</span></h2>
+      <div class="section-divider section-divider-center"></div>
+    </div>
+    <div class="row g-4">
+      @{
+        var catImages = new Dictionary<string, string> {
+          {"clothes","https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"},
+          {"shoes","https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600"},
+          {"watches","https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"},
+          {"bags","https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"},
+          {"accessories","https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600"},
+        };
+      }
+      @foreach (var cat in Model.Categories.Take(5))
+      {
+        var img = !string.IsNullOrEmpty(cat.ImageUrl) && !cat.ImageUrl.StartsWith("/images/categories") ? cat.ImageUrl
+                  : (catImages.ContainsKey(cat.Slug) ? catImages[cat.Slug] : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600");
+        <div class="col-6 col-md-4 col-lg scroll-reveal">
+          <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@cat.Id" class="category-card d-block">
+            <img src="@img" alt="@cat.Name" class="category-card-img" onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600'">
+            <div class="category-card-overlay"></div>
+            <div class="category-card-content">
+              <div class="category-card-name">@cat.Name</div>
+              <div class="category-card-count">Explore Collection →</div>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<div class="divider-gold"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FEATURED PRODUCTS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding bg-light-gray">
+  <div class="container">
+    <div class="d-flex align-items-end justify-content-between mb-5">
+      <div>
+        <span class="section-eyebrow">Handpicked</span>
+        <h2 class="section-title">Featured <span>Products</span></h2>
+        <div class="section-divider"></div>
+      </div>
+      <a asp-controller="Shop" asp-action="Index" class="btn-velora-ghost d-none d-md-inline-flex">
+        View All <i class="fa-solid fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+    <div class="row g-4">
+      @foreach (var product in Model.FeaturedProducts)
+      {
+        <div class="col-6 col-md-4 col-lg-3 scroll-reveal">
+          @await Html.PartialAsync("_ProductCard", product)
+        </div>
+      }
+    </div>
+    <div class="text-center mt-5 d-md-none">
+      <a asp-controller="Shop" asp-action="Index" class="btn-velora-dark">View All Products</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROMO BANNER
+═══════════════════════════════════════════════════════════════ -->
+<section style="background:var(--black);padding:60px 0;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400') center/cover;opacity:.15;"></div>
+  <div class="container" style="position:relative;z-index:2;text-align:center;">
+    <span class="section-eyebrow">Limited Time</span>
+    <h2 style="font-family:var(--font-display);font-size:clamp(1.8rem,4vw,3rem);color:white;font-weight:700;margin-bottom:16px;">
+      Up to <span style="color:var(--gold);">40% Off</span> Season Favourites
+    </h2>
+    <p style="color:rgba(255,255,255,.6);font-size:.95rem;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;">
+      Shop our season-end sale — premium fashion at unbeatable prices. Limited stock available.
+    </p>
+    <a asp-controller="Shop" asp-action="Index" class="btn-velora-primary">
+      Shop Sale <i class="fa-solid fa-fire ms-2"></i>
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NEW ARRIVALS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding">
+  <div class="container">
+    <div class="d-flex align-items-end justify-content-between mb-5">
+      <div>
+        <span class="section-eyebrow">Just In</span>
+        <h2 class="section-title">New <span>Arrivals</span></h2>
+        <div class="section-divider"></div>
+      </div>
+      <a asp-controller="Shop" asp-action="Index" asp-route-sort="newest" class="btn-velora-ghost d-none d-md-inline-flex">
+        See All <i class="fa-solid fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+    <div class="row g-4">
+      @foreach (var product in Model.NewArrivals.Take(4))
+      {
+        <div class="col-6 col-md-4 col-lg-3 scroll-reveal">
+          @await Html.PartialAsync("_ProductCard", product)
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<div class="divider-gold"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BEST SELLERS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding bg-light-gray">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow">Most Loved</span>
+      <h2 class="section-title">Best <span>Sellers</span></h2>
+      <div class="section-divider section-divider-center"></div>
+    </div>
+    <div class="row g-4">
+      @foreach (var product in Model.BestSellers.Take(4))
+      {
+        <div class="col-6 col-md-4 col-lg-3 scroll-reveal">
+          @await Html.PartialAsync("_ProductCard", product)
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     WHY VELORA
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow">Why Us</span>
+      <h2 class="section-title">The <span>Velora</span> Difference</h2>
+      <div class="section-divider section-divider-center"></div>
+    </div>
+    <div class="row g-4">
+      @{
+        var features = new[] {
+          new { Icon="fa-award", Title="Premium Quality", Text="Every product is handpicked and quality-checked by our curation team." },
+          new { Icon="fa-truck-fast", Title="Fast Delivery", Text="Order today, delivered to your door in 2–4 business days across Pakistan." },
+          new { Icon="fa-rotate-left", Title="Easy Returns", Text="Not satisfied? Return within 14 days, no questions asked." },
+          new { Icon="fa-shield-halved", Title="Secure Payment", Text="Your transactions are protected with bank-level encryption." },
+        };
+      }
+      @foreach (var f in features)
+      {
+        <div class="col-6 col-lg-3 scroll-reveal">
+          <div class="text-center p-4">
+            <div style="width:64px;height:64px;background:rgba(201,168,76,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+              <i class="fa-solid @f.Icon text-gold" style="font-size:1.4rem;"></i>
+            </div>
+            <h5 style="font-size:.95rem;font-weight:700;margin-bottom:10px;">@f.Title</h5>
+            <p style="font-size:.82rem;color:var(--gray-500);line-height:1.6;margin:0;">@f.Text</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TESTIMONIALS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding bg-light-gray">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow">Reviews</span>
+      <h2 class="section-title">What Our <span>Customers</span> Say</h2>
+      <div class="section-divider section-divider-center"></div>
+    </div>
+    <div class="row g-4">
+      @{
+        var testimonials = new[] {
+          new { Name="Ayesha Khan", Role="Fashion Blogger", Rating=5, Text="Velora has completely changed how I shop for fashion. The quality of the products is absolutely exceptional — every piece feels like a luxury investment." },
+          new { Name="Omar Siddiqui", Role="Business Executive", Rating=5, Text="I ordered a blazer and it arrived in perfect condition with beautiful packaging. The fit was exactly as described. Will definitely be a returning customer." },
+          new { Name="Sana Malik", Role="Influencer & Stylist", Rating=5, Text="The curation at Velora is unmatched. They truly understand premium fashion. My customers always ask where I shop — the answer is always Velora." },
+        };
+      }
+      @foreach (var t in testimonials)
+      {
+        <div class="col-md-4 scroll-reveal">
+          <div class="testimonial-card">
+            <div class="testimonial-quote">"</div>
+            <p class="testimonial-text">@t.Text</p>
+            <div class="mb-3">
+              @for (int s = 0; s < t.Rating; s++) { <i class="fa-solid fa-star star-icon"></i> }
+            </div>
+            <div class="testimonial-author">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:800;font-size:.9rem;flex-shrink:0;">
+                @t.Name[0]
+              </div>
+              <div>
+                <div class="testimonial-name">@t.Name</div>
+                <div class="testimonial-role">@t.Role</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BRANDS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section-padding-sm" style="background:white;border-top:1px solid var(--gray-200);">
+  <div class="container">
+    <div class="text-center mb-4">
+      <span class="section-eyebrow">As Seen In</span>
+    </div>
+    <div class="row g-3 align-items-center justify-content-center">
+      @foreach (var brand in new[] { "Velora Studio", "Velora Couture", "Velora Premium", "Velora Sport", "Velora Footwear", "Velora Timepieces" })
+      {
+        <div class="col-4 col-md-2 text-center">
+          <div style="font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--gray-300);text-transform:uppercase;padding:10px 0;transition:color .3s;"
+               onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray-300)'">
+            @brand
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NEWSLETTER
+═══════════════════════════════════════════════════════════════ -->
+<section class="newsletter-section">
+  <div class="container text-center" style="position:relative;z-index:2;">
+    <span class="section-eyebrow" style="color:var(--gold);">Stay Updated</span>
+    <h2 class="newsletter-title">Join the <span style="color:var(--gold);">Velora</span> Family</h2>
+    <p class="newsletter-subtitle mb-4">Subscribe for exclusive deals, new arrivals, and style inspiration.</p>
+    <form asp-controller="Home" asp-action="Subscribe" method="post" class="newsletter-form">
+      @Html.AntiForgeryToken()
+      <input type="email" name="email" class="newsletter-input" placeholder="Enter your email address" required>
+      <button type="submit" class="newsletter-btn">Subscribe</button>
+    </form>
+    <p style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:14px;">
+      No spam, ever. Unsubscribe at any time.
+    </p>
+  </div>
+</section>

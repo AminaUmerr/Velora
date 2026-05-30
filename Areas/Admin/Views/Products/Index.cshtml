@@ -1,0 +1,214 @@
+@using System.Collections.Generic
+@model IEnumerable<Velora.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+}
+
+<!-- Top bar -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <form method="get" asp-action="Index" class="d-flex gap-2">
+    <div style="position:relative;">
+      <input type="text" name="search" value="@ViewBag.Search"
+             placeholder="Search products..."
+             class="velora-input" style="height:40px;width:240px;padding-right:36px;">
+      <i class="fa-solid fa-magnifying-glass"
+         style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.78rem;"></i>
+    </div>
+    <button type="submit" class="btn-velora-dark" style="padding:0 18px;font-size:.75rem;">Search</button>
+    @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+    {
+      <a asp-action="Index" class="btn-velora-ghost" style="padding:0 14px;font-size:.75rem;line-height:40px;">Clear</a>
+    }
+  </form>
+
+  <!-- ADD PRODUCT button -->
+  <a asp-action="Create" class="btn-velora-primary" style="gap:8px;">
+    <i class="fa-solid fa-plus"></i> Add New Product
+  </a>
+</div>
+
+<!-- Stats strip -->
+<div class="row g-3 mb-4">
+  @{
+    var total    = Model.Count();
+    var active   = Model.Count(p => p.IsActive);
+    var lowStock = Model.Count(p => p.Stock > 0 && p.Stock <= 5);
+    var outStock = Model.Count(p => p.Stock == 0);
+  }
+  @{
+    var stats = new List<dynamic>
+    {
+      new { Label = "Total Products", Val = total.ToString(), Color = "stat-card-icon-gold" },
+      new { Label = "Active", Val = active.ToString(), Color = "stat-card-icon-green" },
+      new { Label = "Low Stock (≤5)", Val = lowStock.ToString(), Color = "stat-card-icon-blue" },
+      new { Label = "Out of Stock", Val = outStock.ToString(), Color = "stat-card-icon-dark" }
+    };
+  }
+
+  @foreach (var item in stats)
+  {
+    <div class="col-6 col-lg-3">
+      <div class="stat-card" style="padding:16px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div class="stat-card-value" style="font-size:1.5rem;">@item.Val</div>
+            <div class="stat-card-label">@item.Label</div>
+          </div>
+          <div class="stat-card-icon @item.Color" style="margin:0;">
+            <i class="fa-solid fa-shirt"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="admin-table-card">
+  <div class="admin-table-header">
+    <span class="admin-table-title">
+      All Products
+      <span style="color:var(--gray-400);font-weight:400;font-size:.85rem;">(@Model.Count())</span>
+    </span>
+    <div style="font-size:.75rem;color:var(--gray-500);">
+      Soft-deleted products are hidden automatically.
+    </div>
+  </div>
+
+  @if (!Model.Any())
+  {
+    <div class="empty-state" style="padding:60px 20px;">
+      <div class="empty-state-icon" style="font-size:2.5rem;"><i class="fa-solid fa-shirt"></i></div>
+      <h4 class="empty-state-title">No Products Found</h4>
+      <p class="empty-state-text">Start by adding your first product.</p>
+      <a asp-action="Create" class="btn-velora-primary">
+        <i class="fa-solid fa-plus me-2"></i>Add Product
+      </a>
+    </div>
+  }
+  else
+  {
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Flags</th>
+            <th>Status</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var p in Model)
+          {
+            <tr>
+              <!-- Image -->
+              <td>
+                <img src="@(p.ImageUrl ?? "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100")"
+                     class="admin-product-img"
+                     onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100'">
+              </td>
+
+              <!-- Name + brand -->
+              <td>
+                <div style="font-weight:600;font-size:.88rem;max-width:200px;">@p.Name</div>
+                <div style="font-size:.72rem;color:var(--gray-400);">
+                  @p.Brand
+                  @(!string.IsNullOrEmpty(p.Gender) ? " · " + p.Gender : "")
+                </div>
+              </td>
+
+              <!-- Category -->
+              <td style="font-size:.82rem;">@p.Category?.Name</td>
+
+              <!-- Price -->
+              <td>
+                <div style="font-weight:700;font-size:.88rem;">
+                  PKR @p.FinalPrice.ToString("N0")
+                </div>
+                @if (p.DiscountPercentage > 0)
+                {
+                  <div style="font-size:.72rem;color:#2e7d32;font-weight:600;">
+                    @p.DiscountPercentage% off
+                  </div>
+                }
+              </td>
+
+              <!-- Stock -->
+              <td>
+                @if (p.Stock == 0)
+                {
+                  <span style="font-size:.82rem;font-weight:700;color:#c62828;">Out of stock</span>
+                }
+                else if (p.Stock <= 5)
+                {
+                  <span style="font-size:.82rem;font-weight:700;color:#e65100;">@p.Stock (low)</span>
+                }
+                else
+                {
+                  <span style="font-size:.85rem;font-weight:600;color:#2e7d32;">@p.Stock</span>
+                }
+              </td>
+
+              <!-- Flags -->
+              <td>
+                <div class="d-flex gap-1 flex-wrap" style="max-width:120px;">
+                  @if (p.IsFeatured)  { <span style="background:#e3f2fd;color:#1565c0;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.04em;white-space:nowrap;">FEAT</span> }
+                  @if (p.IsNewArrival){ <span style="background:#e8f5e9;color:#2e7d32;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.04em;white-space:nowrap;">NEW</span>  }
+                  @if (p.IsBestSeller){ <span style="background:rgba(201,168,76,.12);color:var(--gold);font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.04em;white-space:nowrap;">BEST</span> }
+                  @if (p.IsTrending)  { <span style="background:#ffebee;color:#c62828;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.04em;white-space:nowrap;">HOT</span>  }
+                </div>
+              </td>
+
+              <!-- Active badge -->
+              <td>
+                <span class="status-badge @(p.IsActive ? "status-confirmed" : "status-cancelled")">
+                  @(p.IsActive ? "Active" : "Inactive")
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="d-flex gap-2 justify-content-center">
+
+                  <!-- Edit -->
+                  <a asp-action="Edit" asp-route-id="@p.Id"
+                     class="btn-action btn-edit" title="Edit Product">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+
+                  <!-- View on store -->
+                  <a asp-controller="Shop" asp-action="Details" asp-route-id="@p.Id" asp-area=""
+                     class="btn-action btn-view" title="View on Store" target="_blank">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+
+                  <!-- Delete (soft) with confirm -->
+                  <form asp-action="Delete" method="post" style="display:inline;"
+                        onsubmit="return confirmDelete('@p.Name')">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@p.Id">
+                    <button type="submit" class="btn-action btn-delete" title="Delete Product">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@section Scripts {
+<script>
+function confirmDelete(name) {
+  return confirm('Are you sure you want to delete "' + name + '"?\n\nThis is a soft delete — the product will be hidden from the store but can be restored from the database.');
+}
+</script>
+}

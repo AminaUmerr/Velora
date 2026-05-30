@@ -1,0 +1,194 @@
+@model Velora.ViewModels.CartViewModel
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div style="background:var(--gray-50);padding:16px 0;">
+  <div class="container">
+    <div class="velora-breadcrumb">
+      <a asp-controller="Home" asp-action="Index">Home</a>
+      <span class="sep">›</span>
+      <span class="active">Shopping Cart</span>
+    </div>
+  </div>
+</div>
+
+<section class="section-padding" style="padding-top:32px;background:var(--gray-50);">
+  <div class="container">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 style="font-size:1.5rem;font-weight:700;margin:0;">
+        Shopping Cart
+        @if (Model.Cart != null && Model.Cart.CartItems.Any())
+        {
+          <span style="font-size:.9rem;font-weight:400;color:var(--gray-500);margin-left:10px;">
+            (@Model.Cart.TotalItems items)
+          </span>
+        }
+      </h1>
+      <a asp-controller="Shop" asp-action="Index" style="font-size:.82rem;color:var(--gray-500);">
+        <i class="fa-solid fa-arrow-left me-1"></i> Continue Shopping
+      </a>
+    </div>
+
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+        <h4 class="empty-state-title">Please Sign In</h4>
+        <p class="empty-state-text">You need to be logged in to view your cart.</p>
+        <a asp-controller="Account" asp-action="Login" class="btn-velora-dark">Sign In</a>
+      </div>
+    }
+    else if (Model.Cart == null || !Model.Cart.CartItems.Any())
+    {
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+        <h4 class="empty-state-title">Your Cart is Empty</h4>
+        <p class="empty-state-text">Looks like you haven't added anything to your cart yet. Explore our collections!</p>
+        <a asp-controller="Shop" asp-action="Index" class="btn-velora-primary">
+          <i class="fa-solid fa-store me-2"></i> Start Shopping
+        </a>
+      </div>
+    }
+    else
+    {
+      <div class="row g-4">
+
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+          @if (Model.SubTotal < 5000)
+          {
+            var remaining = 5000 - Model.SubTotal;
+            <div class="free-shipping-bar mb-3">
+              <i class="fa-solid fa-truck me-2"></i>
+              Add PKR @remaining.ToString("N0") more for <strong>FREE shipping!</strong>
+            </div>
+          }
+          else
+          {
+            <div class="free-shipping-bar mb-3">
+              <i class="fa-solid fa-circle-check me-2"></i>
+              <strong>You qualify for FREE shipping!</strong>
+            </div>
+          }
+
+          <div class="cart-table-wrapper">
+            <!-- Header -->
+            <div style="display:grid;grid-template-columns:80px 1fr auto auto auto;gap:16px;align-items:center;padding:14px 24px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);">
+              <span></span>
+              <span style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);">Product</span>
+              <span style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);">Price</span>
+              <span style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);">Qty</span>
+              <span style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);">Total</span>
+            </div>
+
+            <!-- Items -->
+            @foreach (var item in Model.Cart.CartItems)
+            {
+              <div class="cart-item-row" id="cartRow-@item.Id">
+                <img src="@(item.Product?.ImageUrl ?? "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200")"
+                     alt="@item.Product?.Name" class="cart-item-img"
+                     onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200'">
+
+                <div>
+                  <div class="cart-item-name">
+                    <a asp-controller="Shop" asp-action="Details" asp-route-id="@item.ProductId">
+                      @item.Product?.Name
+                    </a>
+                  </div>
+                  <div class="cart-item-meta">
+                    @item.Product?.Category?.Name
+                    @if (!string.IsNullOrEmpty(item.SelectedSize)) { <span> · Size: @item.SelectedSize</span> }
+                    @if (!string.IsNullOrEmpty(item.SelectedColor)) { <span> · Color: @item.SelectedColor</span> }
+                  </div>
+                  <div style="font-size:.78rem;color:var(--gold);font-weight:600;margin-top:4px;">
+                    PKR @item.UnitPrice.ToString("N0") each
+                  </div>
+                </div>
+
+                <div style="font-size:.9rem;color:var(--gray-700);">
+                  PKR @item.UnitPrice.ToString("N0")
+                </div>
+
+                <div>
+                  <input type="number" class="cart-qty-input"
+                         value="@item.Quantity" min="1" max="99"
+                         data-cart-item-id="@item.Id">
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                  <span style="font-size:.95rem;font-weight:700;color:var(--gray-900);">
+                    PKR @item.TotalPrice.ToString("N0")
+                  </span>
+                  <button class="cart-remove-btn"
+                          onclick="Velora.removeCartItem(@item.Id, document.getElementById('cartRow-@item.Id'))"
+                          title="Remove">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+          <div class="cart-summary-box">
+            <h5 style="font-weight:700;font-size:1rem;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-200);">
+              Order Summary
+            </h5>
+
+            <div class="cart-summary-row">
+              <span>Subtotal</span>
+              <span id="subtotal-val">PKR @Model.SubTotal.ToString("N0")</span>
+            </div>
+            <div class="cart-summary-row">
+              <span>
+                Shipping
+                @if (Model.FreeShipping)
+                { <span style="font-size:.7rem;color:#2e7d32;font-weight:600;"> (FREE)</span> }
+              </span>
+              <span id="shipping-val" style="@(Model.FreeShipping ? "color:#2e7d32;font-weight:600;" : "")">
+                @(Model.FreeShipping ? "FREE" : "PKR " + Model.ShippingCharges.ToString("N0"))
+              </span>
+            </div>
+            <div class="cart-summary-row">
+              <span>Tax (5%)</span>
+              <span id="tax-val">PKR @Model.Tax.ToString("N0")</span>
+            </div>
+
+            <div class="cart-summary-row" style="border-top:2px solid var(--gray-200);margin-top:8px;padding-top:16px;">
+              <span class="cart-summary-total">Grand Total</span>
+              <span class="cart-summary-total-val" id="grandtotal-val">
+                PKR @Model.GrandTotal.ToString("N0")
+              </span>
+            </div>
+
+            <a asp-controller="Checkout" asp-action="Index"
+               class="btn-velora-primary w-100 mt-4" style="justify-content:center;">
+              Proceed to Checkout <i class="fa-solid fa-arrow-right ms-2"></i>
+            </a>
+
+            <!-- Trust badges -->
+            <div class="d-flex justify-content-center gap-4 mt-4">
+              <div class="text-center" style="font-size:.65rem;color:var(--gray-500);">
+                <i class="fa-solid fa-lock text-gold d-block mb-1" style="font-size:.9rem;"></i>
+                Secure
+              </div>
+              <div class="text-center" style="font-size:.65rem;color:var(--gray-500);">
+                <i class="fa-solid fa-rotate-left text-gold d-block mb-1" style="font-size:.9rem;"></i>
+                Returns
+              </div>
+              <div class="text-center" style="font-size:.65rem;color:var(--gray-500);">
+                <i class="fa-solid fa-truck text-gold d-block mb-1" style="font-size:.9rem;"></i>
+                Fast Delivery
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,43 @@
+@* ===== Categories/Create.cshtml ===== *@
+@model Velora.Models.Category
+@{
+    ViewData["Title"] = Model.Id > 0 ? "Edit Category" : "Add Category";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a asp-action="Index" class="btn-action btn-view"><i class="fa-solid fa-arrow-left"></i></a>
+  <h4 style="font-size:1.1rem;font-weight:700;margin:0;">@ViewData["Title"]</h4>
+</div>
+
+<div style="background:white;border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);max-width:560px;">
+  <form asp-action="@(Model.Id > 0 ? "Edit" : "Create")" asp-route-id="@(Model.Id > 0 ? Model.Id : null)" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="velora-label">Category Name *</label>
+        <input asp-for="Name" class="velora-input" placeholder="e.g. Shoes">
+        <span asp-validation-for="Name" class="text-danger" style="font-size:.73rem;"></span>
+      </div>
+      <div class="col-12">
+        <label class="velora-label">Description</label>
+        <textarea asp-for="Description" class="velora-textarea" rows="2"></textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="velora-label">Display Order</label>
+        <input asp-for="DisplayOrder" type="number" class="velora-input" min="0">
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.85rem;margin-bottom:0;padding-bottom:12px;">
+          <input asp-for="IsActive" type="checkbox" style="accent-color:var(--gold);width:16px;height:16px;">
+          Active / Visible
+        </label>
+      </div>
+      <div class="col-12 pt-2">
+        <button type="submit" class="btn-velora-primary">
+          <i class="fa-solid fa-floppy-disk me-2"></i>@(Model.Id > 0 ? "Update" : "Create") Category
+        </button>
+        <a asp-action="Index" class="btn-velora-ghost ms-2">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,197 @@
+@model Velora.ViewModels.ShopViewModel
+@{
+    ViewData["Title"] = "Shop";
+}
+
+<div style="background:var(--gray-50);padding:24px 0 0;">
+  <div class="container">
+    <div class="velora-breadcrumb">
+      <a asp-controller="Home" asp-action="Index">Home</a>
+      <span class="sep">›</span>
+      <span class="active">Shop</span>
+      @if (Model.CategoryId.HasValue)
+      {
+        var cat = Model.Categories.FirstOrDefault(c => c.Id == Model.CategoryId);
+        if (cat != null)
+        {
+          <span class="sep">›</span>
+          <span class="active">@cat.Name</span>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<section class="section-padding" style="padding-top:24px;background:var(--gray-50);">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+      <div class="col-lg-3">
+        <div class="shop-sidebar">
+          <form method="get" asp-action="Index" id="filterForm">
+
+            <!-- Search -->
+            <div class="filter-group">
+              <div class="filter-title">Search</div>
+              <div class="position-relative">
+                <input type="text" name="search" value="@Model.Search"
+                       class="velora-input" style="height:42px;padding-right:40px;"
+                       placeholder="Search products...">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--gray-500);font-size:.8rem;"></i>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="filter-group">
+              <div class="filter-title">Category</div>
+              @foreach (var cat in Model.Categories)
+              {
+                <label class="filter-check">
+                  <input type="radio" name="categoryId" value="@cat.Id"
+                         @(Model.CategoryId == cat.Id ? "checked" : "")
+                         onchange="document.getElementById('filterForm').submit()">
+                  @cat.Name
+                </label>
+              }
+              @if (Model.CategoryId.HasValue)
+              {
+                <a href="@Url.Action("Index", "Shop")" class="d-block mt-2" style="font-size:.75rem;color:var(--gold);">
+                  × Clear category
+                </a>
+              }
+            </div>
+
+            <!-- Gender -->
+            <div class="filter-group">
+              <div class="filter-title">Gender</div>
+              @foreach (var g in new[] { "Men", "Women", "Unisex", "Kids" })
+              {
+                <label class="filter-check">
+                  <input type="radio" name="gender" value="@g"
+                         @(Model.Gender == g ? "checked" : "")
+                         onchange="document.getElementById('filterForm').submit()">
+                  @g
+                </label>
+              }
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-group">
+              <div class="filter-title">Max Price</div>
+              <input type="range" id="priceRange" class="price-range-slider"
+                     min="500" max="100000" step="500"
+                     value="@(Model.MaxPrice ?? 100000)">
+              <div class="d-flex justify-content-between mt-2">
+                <span style="font-size:.75rem;color:var(--gray-500);">PKR 500</span>
+                <span id="priceRangeLabel" style="font-size:.75rem;color:var(--gold);font-weight:600;">
+                  PKR @((Model.MaxPrice ?? 100000).ToString("N0"))
+                </span>
+              </div>
+              <input type="hidden" name="maxPrice" id="maxPriceInput" value="@(Model.MaxPrice ?? 100000)">
+            </div>
+
+            <button type="submit" class="btn-velora-dark w-100" style="padding:11px;">
+              Apply Filters
+            </button>
+
+            @if (!string.IsNullOrEmpty(Model.Search) || Model.CategoryId.HasValue ||
+                 !string.IsNullOrEmpty(Model.Gender) || Model.MaxPrice.HasValue)
+            {
+              <a href="@Url.Action("Index", "Shop")" class="d-block text-center mt-3"
+                 style="font-size:.78rem;color:var(--gray-500);">
+                × Clear all filters
+              </a>
+            }
+          </form>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTS ─────────────────────────────────────────── -->
+      <div class="col-lg-9">
+
+        <!-- Shop Header -->
+        <div class="shop-header">
+          <span class="product-count-label">
+            Showing <strong>@Model.Products.Count()</strong> of <strong>@Model.TotalCount</strong> products
+          </span>
+          <div class="d-flex align-items-center gap-3">
+            <form method="get" asp-action="Index" id="sortForm">
+              <input type="hidden" name="search" value="@Model.Search">
+              <input type="hidden" name="categoryId" value="@Model.CategoryId">
+              <input type="hidden" name="gender" value="@Model.Gender">
+              <input type="hidden" name="maxPrice" value="@Model.MaxPrice">
+              <select name="sort" class="sort-select" onchange="this.form.submit()">
+                                <option value="" selected="@(string.IsNullOrEmpty(Model.Sort))">Latest</option>
+
+                                <option value="price_asc" selected="@(Model.Sort == "price_asc")">
+                                    Price: Low to High
+                                </option>
+
+                                <option value="price_desc" selected="@(Model.Sort == "price_desc")">
+                                    Price: High to Low
+                                </option>
+
+                                <option value="name_asc" selected="@(Model.Sort == "name_asc")">
+                                    Name A–Z
+                                </option>
+
+                                <option value="newest" selected="@(Model.Sort == "newest")">
+                                    Newest
+                                </option>
+              </select>
+            </form>
+          </div>
+        </div>
+
+        @if (Model.Products.Any())
+        {
+          <div class="row g-4">
+            @foreach (var product in Model.Products)
+            {
+              <div class="col-6 col-md-4 col-xl-3">
+                @await Html.PartialAsync("_ProductCard", product)
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          @if (Model.TotalPages > 1)
+          {
+            <div class="d-flex justify-content-center mt-5">
+              <div class="velora-pagination">
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                  <a href="@Url.Action("Index", "Shop", new { search = Model.Search, categoryId = Model.CategoryId, gender = Model.Gender, maxPrice = Model.MaxPrice, sort = Model.Sort, page = p })"
+                     class="page-btn @(Model.Page == p ? "active" : "")">@p</a>
+                }
+              </div>
+            </div>
+          }
+        }
+        else
+        {
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h4 class="empty-state-title">No Products Found</h4>
+            <p class="empty-state-text">Try adjusting your filters or search terms to find what you're looking for.</p>
+            <a href="@Url.Action("Index", "Shop")" class="btn-velora-dark">Clear Filters</a>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+@section Scripts {
+<script>
+  const rangeInput = document.getElementById('priceRange');
+  const hiddenInput = document.getElementById('maxPriceInput');
+  if (rangeInput) {
+    rangeInput.addEventListener('input', function() {
+      hiddenInput.value = this.value;
+      document.getElementById('priceRangeLabel').textContent = 'PKR ' + Number(this.value).toLocaleString();
+    });
+  }
+</script>
+}

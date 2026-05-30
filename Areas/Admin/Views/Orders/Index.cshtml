@@ -1,0 +1,63 @@
+@* ===== Orders/Index.cshtml ===== *@
+@model IEnumerable<Velora.Models.Order>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<!-- Status Tabs -->
+<div class="d-flex gap-2 flex-wrap mb-4">
+  @{
+    var tabs = new[] { ("", "All"), ("Pending", "Pending"), ("Confirmed", "Confirmed"),
+                       ("Shipped", "Shipped"), ("Delivered", "Delivered"), ("Cancelled", "Cancelled") };
+  }
+  @foreach (var (val, label) in tabs)
+  {
+    <a href="@Url.Action("Index", new { status = val })"
+       style="display:inline-flex;align-items:center;padding:7px 16px;border-radius:20px;font-size:.78rem;font-weight:600;transition:all .2s;
+              background:@(ViewBag.CurrentStatus?.ToString() == val ? "var(--black)" : "white");
+              color:@(ViewBag.CurrentStatus?.ToString() == val ? "white" : "var(--gray-600)");
+              border:1.5px solid @(ViewBag.CurrentStatus?.ToString() == val ? "var(--black)" : "var(--gray-200)");">
+      @label
+    </a>
+  }
+</div>
+
+<div class="admin-table-card">
+  <div class="admin-table-header">
+    <span class="admin-table-title">Orders <span style="color:var(--gray-400);font-weight:400;">(@Model.Count())</span></span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order #</th><th>Customer</th><th>Date</th><th>Payment</th><th>Total</th><th>Status</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var order in Model)
+        {
+          <tr>
+            <td><strong style="color:var(--gold);">@order.OrderNumber</strong></td>
+            <td>
+              <div style="font-weight:600;font-size:.85rem;">@order.User?.FullName</div>
+              <div style="font-size:.72rem;color:var(--gray-400);">@order.User?.Email</div>
+            </td>
+            <td style="font-size:.82rem;">@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+            <td style="font-size:.75rem;">@order.PaymentMethod.ToString().Replace("CreditDebitCard","Card")</td>
+            <td><strong>PKR @order.GrandTotal.ToString("N0")</strong></td>
+            <td>
+              <span class="status-badge status-@order.Status.ToString().ToLower()">
+                @order.Status
+              </span>
+            </td>
+            <td>
+              <a asp-action="Details" asp-route-id="@order.Id" class="btn-action btn-view">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

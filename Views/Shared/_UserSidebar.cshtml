@@ -1,0 +1,48 @@
+@{
+    var ctrl = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<div class="col-lg-3">
+  <div class="dashboard-sidebar">
+    <div class="text-center mb-4">
+      @if (!string.IsNullOrEmpty(User.FindFirst("ProfileImage")?.Value))
+      {
+        <img src="@User.FindFirst("ProfileImage")?.Value" class="dashboard-avatar" alt="Profile">
+      }
+      else
+      {
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--black);font-family:var(--font-display);font-size:1.6rem;font-weight:800;margin:0 auto;">
+          @User.Identity?.Name?[0].ToString().ToUpper()
+        </div>
+      }
+      <div class="dashboard-user-name">@User.Identity?.Name?.Split('@')[0]</div>
+      <div class="dashboard-user-email" style="font-size:.75rem;">@User.Identity?.Name</div>
+    </div>
+
+    <div style="height:1px;background:var(--gray-200);margin-bottom:16px;"></div>
+
+    @{
+      var links = new[] {
+        new { Action="Dashboard",      Icon="fa-grid-2",          Label="Dashboard" },
+        new { Action="Orders",         Icon="fa-box",             Label="My Orders" },
+        new { Action="Profile",        Icon="fa-user-pen",        Label="Edit Profile" },
+        new { Action="Wishlist",       Icon="fa-heart",           Label="Wishlist" },
+        new { Action="ChangePassword", Icon="fa-lock",            Label="Change Password" },
+      };
+    }
+    @foreach (var link in links)
+    {
+      <a asp-controller="User" asp-action="@link.Action"
+         class="dash-nav-link @(ctrl == link.Action ? "active" : "")">
+        <i class="fa-solid @link.Icon"></i> @link.Label
+      </a>
+    }
+
+    <div style="height:1px;background:var(--gray-200);margin:12px 0;"></div>
+    <form asp-controller="Account" asp-action="Logout" method="post">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="dash-nav-link w-100 text-start" style="background:none;border:none;color:#f44336;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+      </button>
+    </form>
+  </div>
+</div>

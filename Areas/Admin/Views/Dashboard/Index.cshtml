@@ -1,0 +1,126 @@
+@model Velora.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Stat Cards -->
+<div class="row g-4 mb-4">
+  @{
+    var cards = new[] {
+      new { Icon="fa-box",          Label="Total Orders",   Value=Model.TotalOrders.ToString("N0"),   Sub=$"{Model.PendingOrders} pending",    Color="stat-card-icon-gold"  },
+      new { Icon="fa-money-bill",   Label="Total Revenue",  Value="PKR "+Model.TotalRevenue.ToString("N0"), Sub="All time",              Color="stat-card-icon-green" },
+      new { Icon="fa-shirt",        Label="Products",       Value=Model.TotalProducts.ToString("N0"), Sub="Active listings",                   Color="stat-card-icon-dark"  },
+      new { Icon="fa-users",        Label="Customers",      Value=Model.TotalUsers.ToString("N0"),    Sub="Registered users",                  Color="stat-card-icon-blue"  },
+    };
+  }
+  @foreach (var card in cards)
+  {
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-card-icon @card.Color">
+          <i class="fa-solid @card.Icon"></i>
+        </div>
+        <div class="stat-card-value">@card.Value</div>
+        <div class="stat-card-label">@card.Label</div>
+        <div class="stat-card-change" style="color:var(--gray-500);">@card.Sub</div>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Revenue Chart -->
+  <div class="col-lg-8">
+    <div class="admin-table-card">
+      <div class="admin-table-header">
+        <span class="admin-table-title">Monthly Revenue (@DateTime.Now.Year)</span>
+        <span style="font-size:.75rem;color:var(--gray-500);">PKR values</span>
+      </div>
+      <div style="padding:20px;height:280px;">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Status Doughnut -->
+  <div class="col-lg-4">
+    <div class="admin-table-card h-100">
+      <div class="admin-table-header">
+        <span class="admin-table-title">Order Status</span>
+      </div>
+      <div style="padding:20px;height:250px;">
+        <canvas id="orderStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="admin-table-card">
+  <div class="admin-table-header">
+    <span class="admin-table-title">Recent Orders</span>
+    <a asp-area="Admin" asp-controller="Orders" asp-action="Index" style="font-size:.78rem;color:var(--gold);">
+      View All <i class="fa-solid fa-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th>Payment</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var order in Model.RecentOrders)
+        {
+          <tr>
+            <td><strong style="color:var(--gold);">@order.OrderNumber</strong></td>
+            <td>
+              <div style="font-weight:600;font-size:.85rem;">@order.User?.FullName</div>
+              <div style="font-size:.72rem;color:var(--gray-500);">@order.User?.Email</div>
+            </td>
+            <td style="font-size:.82rem;">@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+            <td style="font-size:.85rem;">@order.OrderItems.Count</td>
+            <td style="font-size:.75rem;">@order.PaymentMethod.ToString().Replace("CreditDebitCard","Card")</td>
+            <td><strong>PKR @order.GrandTotal.ToString("N0")</strong></td>
+            <td>
+              <span class="status-badge status-@order.Status.ToString().ToLower()">
+                @order.Status
+              </span>
+            </td>
+            <td>
+              <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                 class="btn-action btn-view" title="View">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyRevenues.Select(m => m.Month)));
+const data   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyRevenues.Select(m => m.Revenue)));
+initRevenueChart(labels, data);
+
+const orderData = [
+  @Model.RecentOrders.Count(o => o.Status == Velora.Models.OrderStatus.Pending),
+  @Model.RecentOrders.Count(o => o.Status == Velora.Models.OrderStatus.Confirmed),
+  @Model.RecentOrders.Count(o => o.Status == Velora.Models.OrderStatus.Shipped),
+  @Model.RecentOrders.Count(o => o.Status == Velora.Models.OrderStatus.Delivered),
+  @Model.RecentOrders.Count(o => o.Status == Velora.Models.OrderStatus.Cancelled),
+];
+initOrderStatusChart(orderData);
+</script>
+}

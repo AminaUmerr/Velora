@@ -1,0 +1,290 @@
+@model Velora.ViewModels.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.Product.Name;
+    var p = Model.Product;
+    var sizes = p.Sizes?.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList() ?? new List<string>();
+    var colors = p.Colors?.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList() ?? new List<string>();
+    var colorMap = new Dictionary<string,string> {
+        {"Black","#1a1a1a"},{"White","#f5f5f5"},{"Navy","#1a237e"},{"Camel","#c19a6b"},{"Cream","#fffdd0"},
+        {"Burgundy","#800020"},{"Ivory","#fffff0"},{"Grey","#9e9e9e"},{"Red","#e53935"},{"Brown","#795548"},
+        {"Tan","#d2b48c"},{"Olive","#808000"},{"Khaki","#c3b091"},{"Pink","#f48fb1"},{"Nude","#f5cba7"},
+        {"Gold","#c9a84c"},{"Charcoal","#36454f"},{"Beige","#f5f5dc"},{"Rose Gold","#b76e79"},
+    };
+}
+
+<div style="background:var(--gray-50);padding:16px 0;">
+  <div class="container">
+    <div class="velora-breadcrumb">
+      <a asp-controller="Home" asp-action="Index">Home</a>
+      <span class="sep">›</span>
+      <a asp-controller="Shop" asp-action="Index">Shop</a>
+      <span class="sep">›</span>
+      <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@p.CategoryId">@p.Category?.Name</a>
+      <span class="sep">›</span>
+      <span class="active">@p.Name</span>
+    </div>
+  </div>
+</div>
+
+<section class="section-padding" style="padding-top:32px;">
+  <div class="container">
+    <div class="row g-5">
+
+      <!-- Gallery -->
+      <div class="col-lg-6">
+        <div class="product-detail-gallery">
+          <div class="gallery-main">
+            <img src="@(p.ImageUrl ?? "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800")"
+                 alt="@p.Name" id="mainImage"
+                 onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800'">
+          </div>
+          @{
+            var extraImages = new List<string?> { p.ImageUrl, p.ImageUrl2, p.ImageUrl3, p.ImageUrl4 }
+                              .Where(x => !string.IsNullOrEmpty(x)).Take(4).ToList();
+          }
+          @if (extraImages.Count > 1)
+          {
+            <div class="gallery-thumbs">
+              @foreach (var (img, idx) in extraImages.Select((img, i) => (img, i)))
+              {
+                <div class="gallery-thumb @(idx == 0 ? "active" : "")">
+                  <img src="@img" alt="@p.Name @(idx+1)">
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="col-lg-6">
+        <div class="animate-fadeInUp">
+
+          <div class="product-category-tag mb-2">@p.Category?.Name · @p.Brand</div>
+          <h1 style="font-size:clamp(1.5rem,3vw,2.1rem);font-weight:700;margin-bottom:12px;">@p.Name</h1>
+
+          <!-- Rating -->
+          @if (p.ReviewCount > 0)
+          {
+            <div class="d-flex align-items-center gap-2 mb-16" style="margin-bottom:16px;">
+              @for (int i = 1; i <= 5; i++)
+              { <i class="fa-@(i <= Math.Round(p.AverageRating) ? "solid" : "regular") fa-star star-icon"></i> }
+              <span style="font-size:.82rem;color:var(--gray-500);">@p.AverageRating.ToString("0.0") (@p.ReviewCount reviews)</span>
+            </div>
+          }
+
+          <!-- Price -->
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <span style="font-size:1.9rem;font-weight:800;color:var(--gray-900);">PKR @p.FinalPrice.ToString("N0")</span>
+            @if (p.DiscountPrice.HasValue && p.DiscountPrice > 0)
+            {
+              <span style="font-size:1.1rem;color:var(--gray-400);text-decoration:line-through;">PKR @p.Price.ToString("N0")</span>
+              <span class="product-discount" style="font-size:.82rem;">@p.DiscountPercentage% OFF</span>
+            }
+          </div>
+
+          <!-- Stock -->
+          <div class="mb-4">
+            @if (p.Stock > 10)
+            { <span class="stock-indicator in-stock"><span class="stock-dot"></span>In Stock (@p.Stock available)</span> }
+            else if (p.Stock > 0)
+            { <span class="stock-indicator low-stock"><span class="stock-dot"></span>Only @p.Stock left!</span> }
+            else
+            { <span class="stock-indicator out-stock"><span class="stock-dot"></span>Out of Stock</span> }
+          </div>
+
+          <div style="height:1px;background:var(--gray-200);margin-bottom:24px;"></div>
+
+          <!-- Sizes -->
+          @if (sizes.Any())
+          {
+            <div class="mb-4">
+              <div style="font-size:.78rem;font-weight:700;letter-spacing:.05em;color:var(--gray-700);margin-bottom:10px;">
+                SIZE <span id="selectedSizeDisplay" style="color:var(--gold);margin-left:6px;"></span>
+              </div>
+              <div class="sizes-wrapper d-flex flex-wrap gap-2">
+                @foreach (var size in sizes)
+                { <button type="button" class="size-btn">@size</button> }
+              </div>
+            </div>
+            <input type="hidden" id="selectedSize" value="">
+          }
+
+          <!-- Colors -->
+          @if (colors.Any())
+          {
+            <div class="mb-4">
+              <div style="font-size:.78rem;font-weight:700;letter-spacing:.05em;color:var(--gray-700);margin-bottom:10px;">
+                COLOR <span id="selectedColorDisplay" style="color:var(--gold);margin-left:6px;"></span>
+              </div>
+              <div class="colors-wrapper d-flex flex-wrap gap-2">
+                @foreach (var color in colors)
+                {
+                  var hex = colorMap.ContainsKey(color) ? colorMap[color] : "#ccc";
+                  <button type="button" class="color-swatch" data-color="@color"
+                          style="background:@hex;" title="@color"></button>
+                }
+              </div>
+            </div>
+            <input type="hidden" id="selectedColor" value="">
+          }
+
+          <!-- Quantity + Add to Cart -->
+          <div class="d-flex align-items-center gap-3 mb-4" style="flex-wrap:wrap;">
+            <div class="qty-selector">
+              <button type="button" class="qty-btn" data-delta="-">−</button>
+              <input type="number" class="qty-input" id="productQty" value="1" min="1" max="@p.Stock">
+              <button type="button" class="qty-btn" data-delta="+">+</button>
+            </div>
+
+            @if (p.Stock > 0)
+            {
+              <button class="btn-velora-primary flex-grow-1" id="addToCartBtn"
+                      onclick="addProductToCart()">
+                <i class="fa-solid fa-bag-shopping"></i> Add to Cart
+              </button>
+            }
+            else
+            {
+              <button class="btn-velora-primary flex-grow-1" disabled style="opacity:.5;">
+                Out of Stock
+              </button>
+            }
+
+            <button class="btn-velora-ghost" id="wishlistBtn"
+                    onclick="Velora.toggleWishlist(@p.Id, this)"
+                    style="padding:13px 16px;">
+              <i class="fa-@(Model.IsInWishlist ? "solid" : "regular") fa-heart"></i>
+            </button>
+          </div>
+
+          <!-- Description -->
+          <div style="background:var(--gray-50);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+            <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Description</div>
+            <p style="font-size:.88rem;color:var(--gray-700);line-height:1.7;margin:0;">@p.Description</p>
+          </div>
+
+          <!-- Meta -->
+          <div style="font-size:.78rem;color:var(--gray-500);">
+            @if (!string.IsNullOrEmpty(p.SKU)) { <div><strong>SKU:</strong> @p.SKU</div> }
+            @if (!string.IsNullOrEmpty(p.Gender)) { <div><strong>Gender:</strong> @p.Gender</div> }
+            @if (!string.IsNullOrEmpty(p.Brand)) { <div><strong>Brand:</strong> @p.Brand</div> }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REVIEWS ──────────────────────────────────────────────────── -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div style="height:1px;background:var(--gray-200);margin-bottom:40px;"></div>
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:28px;">
+          Customer Reviews <span style="color:var(--gray-500);font-size:.9rem;font-weight:400;">(@p.ReviewCount)</span>
+        </h3>
+
+        @if (p.Reviews.Any())
+        {
+          <div class="row g-3 mb-5">
+            @foreach (var review in p.Reviews.Take(6))
+            {
+              <div class="col-md-6">
+                <div style="background:var(--gray-50);border-radius:var(--radius);padding:20px;">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <strong style="font-size:.88rem;">@review.User?.FullName</strong>
+                      <div style="font-size:.72rem;color:var(--gray-500);">@review.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    </div>
+                    <div>@for (int s = 1; s <= 5; s++) { <i class="fa-@(s <= review.Rating ? "solid" : "regular") fa-star star-icon"></i> }</div>
+                  </div>
+                  @if (!string.IsNullOrEmpty(review.Title))
+                  { <div style="font-weight:600;font-size:.85rem;margin-bottom:6px;">@review.Title</div> }
+                  @if (!string.IsNullOrEmpty(review.Comment))
+                  { <p style="font-size:.83rem;color:var(--gray-700);line-height:1.6;margin:0;">@review.Comment</p> }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Write Review Form -->
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+          <div style="background:white;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:28px;">
+            <h5 style="font-size:.9rem;font-weight:700;margin-bottom:20px;">Write a Review</h5>
+            <form asp-controller="Shop" asp-action="SubmitReview" method="post">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="ProductId" value="@p.Id">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="velora-label">Rating</label>
+                  <select name="Rating" class="velora-input" style="height:48px;">
+                    @for (int r = 5; r >= 1; r--)
+                    { <option value="@r">@r Star@(r > 1 ? "s" : "")</option> }
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="velora-label">Title (optional)</label>
+                  <input type="text" name="Title" class="velora-input" placeholder="Summary of your review">
+                </div>
+                <div class="col-12">
+                  <label class="velora-label">Your Review</label>
+                  <textarea name="Comment" class="velora-textarea" rows="3" placeholder="Share your thoughts about this product..."></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn-velora-dark">Submit Review</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        }
+        else
+        {
+          <div class="velora-alert velora-alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <a asp-controller="Account" asp-action="Login">Login</a> to write a review.
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── RELATED PRODUCTS ────────────────────────────────────────── -->
+    @if (Model.RelatedProducts.Any())
+    {
+      <div class="mt-5">
+        <div style="height:1px;background:var(--gray-200);margin-bottom:40px;"></div>
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:28px;">You May Also Like</h3>
+        <div class="row g-4">
+          @foreach (var rp in Model.RelatedProducts)
+          {
+            <div class="col-6 col-md-3">
+              @await Html.PartialAsync("_ProductCard", rp)
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+@section Scripts {
+<script>
+function addProductToCart() {
+  const qty   = parseInt(document.getElementById('productQty').value) || 1;
+  const size  = document.getElementById('selectedSize')?.value || null;
+  const color = document.getElementById('selectedColor')?.value || null;
+  Velora.addToCart(@p.Id, qty, size, color);
+}
+
+// Update display labels when size/color selected
+document.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('selectedSizeDisplay').textContent = btn.textContent;
+  });
+});
+document.querySelectorAll('.color-swatch').forEach(s => {
+  s.addEventListener('click', () => {
+    document.getElementById('selectedColorDisplay').textContent = s.dataset.color;
+  });
+});
+</script>
+}

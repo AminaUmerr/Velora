@@ -1,0 +1,48 @@
+@model IEnumerable<Velora.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="admin-table-card">
+  <div class="admin-table-header">
+    <span class="admin-table-title">Registered Customers <span style="color:var(--gray-400);font-weight:400;">(@Model.Count())</span></span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>City</th>
+          <th>Joined</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var user in Model.OrderByDescending(u => u.CreatedAt))
+        {
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:800;font-size:.78rem;flex-shrink:0;">
+                  @user.FullName?[0].ToString().ToUpper()
+                </div>
+                <span style="font-weight:600;font-size:.88rem;">@user.FullName</span>
+              </div>
+            </td>
+            <td style="font-size:.82rem;">@user.Email</td>
+            <td style="font-size:.82rem;">@(user.PhoneNumber ?? "—")</td>
+            <td style="font-size:.82rem;">@(user.City ?? "—")</td>
+            <td style="font-size:.82rem;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+            <td>
+              <span class="status-badge @(user.IsActive ? "status-confirmed" : "status-cancelled")">
+                @(user.IsActive ? "Active" : "Inactive")
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

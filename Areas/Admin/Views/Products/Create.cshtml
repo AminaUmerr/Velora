@@ -1,0 +1,313 @@
+@using System.Collections.Generic
+@model Velora.ViewModels.ProductViewModel
+@{
+    bool isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Product" : "Add New Product";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a asp-action="Index" class="btn-action btn-view" title="Back to Products">
+    <i class="fa-solid fa-arrow-left"></i>
+  </a>
+  <div>
+    <h4 style="font-size:1.1rem;font-weight:700;margin:0;">
+      @(isEdit ? "Edit Product" : "Add New Product")
+    </h4>
+    <div style="font-size:.75rem;color:var(--gray-500);">
+      @(isEdit ? $"Editing: {Model.Name}" : "Fill in the details below to add a new product.")
+    </div>
+  </div>
+</div>
+
+<!-- Validation summary at top -->
+<div asp-validation-summary="ModelOnly" class="velora-alert velora-alert-error mb-4"></div>
+
+<form asp-action="@(isEdit ? "Edit" : "Create")"
+      asp-route-id="@(isEdit ? Model.Id : null)"
+      method="post" enctype="multipart/form-data"
+      id="productForm">
+  @Html.AntiForgeryToken()
+
+  <div class="row g-4">
+
+    <!-- ══════ LEFT COLUMN ══════ -->
+    <div class="col-lg-8">
+
+      <!-- Basic Info -->
+      <div style="background:white;border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);margin-bottom:20px;">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="fa-solid fa-circle-info me-2"></i>Basic Information
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="velora-label">Product Name *</label>
+            <input asp-for="Name" class="velora-input" placeholder="e.g. Premium Slim-Fit Blazer">
+            <span asp-validation-for="Name" class="text-danger" style="font-size:.73rem;"></span>
+          </div>
+
+          <div class="col-12">
+            <label class="velora-label">Description</label>
+            <textarea asp-for="Description" class="velora-textarea" rows="4"
+                      placeholder="Describe the product in detail — fabric, fit, occasion, etc."></textarea>
+          </div>
+
+          <div class="col-md-4">
+            <label class="velora-label">Category *</label>
+            <select asp-for="CategoryId"
+                    class="velora-input" style="height:48px;"
+                    asp-items="@(new SelectList(Model.Categories, "Id", "Name", Model.CategoryId))">
+              <option value="">-- Select Category --</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger" style="font-size:.73rem;"></span>
+          </div>
+
+          <div class="col-md-4">
+            <label class="velora-label">Brand</label>
+            <input asp-for="Brand" class="velora-input" placeholder="e.g. Velora Studio">
+          </div>
+
+          <div class="col-md-4">
+            <label class="velora-label">Gender</label>
+            <select asp-for="Gender" class="velora-input" style="height:48px;">
+              <option value="">-- Select --</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Unisex">Unisex</option>
+              <option value="Kids">Kids</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="velora-label">
+              Sizes
+              <span style="color:var(--gray-400);font-weight:400;">(comma-separated)</span>
+            </label>
+            <input asp-for="Sizes" class="velora-input"
+                   placeholder="e.g. S,M,L,XL or 38,39,40,41">
+            <div style="font-size:.68rem;color:var(--gray-400);margin-top:4px;">
+              Clothes: XS,S,M,L,XL,XXL &nbsp;·&nbsp; Shoes: 38,39,40,41,42 &nbsp;·&nbsp; Other: One Size
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="velora-label">
+              Colors
+              <span style="color:var(--gray-400);font-weight:400;">(comma-separated)</span>
+            </label>
+            <input asp-for="Colors" class="velora-input"
+                   placeholder="e.g. Black,White,Navy,Camel">
+          </div>
+
+          <div class="col-md-6">
+            <label class="velora-label">SKU</label>
+            <input asp-for="SKU" class="velora-input" placeholder="e.g. VLR-CLT-001">
+          </div>
+
+          <div class="col-md-6">
+            <label class="velora-label">Tags</label>
+            <input asp-for="Tags" class="velora-input" placeholder="e.g. formal, summer, casual">
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing & Stock -->
+      <div style="background:white;border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="fa-solid fa-tag me-2"></i>Pricing &amp; Inventory
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="velora-label">Original Price (PKR) *</label>
+            <input asp-for="Price" class="velora-input" type="number" min="1" step="1"
+                   placeholder="0" id="priceInput" oninput="calcDiscount()">
+            <span asp-validation-for="Price" class="text-danger" style="font-size:.73rem;"></span>
+          </div>
+
+          <div class="col-md-4">
+            <label class="velora-label">
+              Discount Price (PKR)
+              <span style="color:var(--gray-400);font-weight:400;">(optional)</span>
+            </label>
+            <input asp-for="DiscountPrice" class="velora-input" type="number" min="0" step="1"
+                   placeholder="Leave blank for no discount"
+                   id="discountInput" oninput="calcDiscount()">
+            <div id="discountBadge" style="font-size:.72rem;color:#2e7d32;font-weight:600;margin-top:4px;display:none;"></div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="velora-label">Stock Quantity *</label>
+            <input asp-for="Stock" class="velora-input" type="number" min="0"
+                   placeholder="0" id="stockInput" oninput="checkStock()">
+            <div id="stockWarning" style="font-size:.72rem;color:#e65100;margin-top:4px;display:none;">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i>Low stock warning will show on product page.
+            </div>
+            <span asp-validation-for="Stock" class="text-danger" style="font-size:.73rem;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ RIGHT COLUMN ══════ -->
+    <div class="col-lg-4">
+
+      <!-- Images -->
+      <div style="background:white;border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);margin-bottom:20px;">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="fa-solid fa-images me-2"></i>Product Images
+        </div>
+
+        @{
+          var imgSlots = new List<dynamic>
+          {
+            new { Lbl = "Main Image *", InputName = "ImageFile", Existing = Model.ExistingImage, PreviewId = "mainPreview" },
+            new { Lbl = "Image 2", InputName = "ImageFile2", Existing = Model.ExistingImage2, PreviewId = "preview2" },
+            new { Lbl = "Image 3", InputName = "ImageFile3", Existing = Model.ExistingImage3, PreviewId = "preview3" }
+          };
+        }
+
+        @foreach (var item in imgSlots)
+        {
+          <div class="mb-4">
+            <label class="velora-label">@item.Lbl</label>
+
+                        @if (!string.IsNullOrEmpty(item.Existing))
+            {
+              <div style="position:relative;margin-bottom:8px;">
+                <img id="@item.PreviewId"
+                     src="@item.Existing"
+                     style="width:100%;height:140px;object-fit:cover;border-radius:var(--radius-sm);border:1.5px solid var(--gray-200);"
+                     onerror="this.style.display='none'">
+                <div style="font-size:.68rem;color:var(--gray-400);margin-top:4px;">
+                  Current image — upload a new one to replace it.
+                </div>
+              </div>
+            }
+            else
+            {
+              <div id="@item.PreviewId"
+                   style="width:100%;height:120px;background:var(--gray-50);border:2px dashed var(--gray-300);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+                <div style="text-align:center;color:var(--gray-400);">
+                  <i class="fa-regular fa-image" style="font-size:1.6rem;margin-bottom:6px;display:block;"></i>
+                  <span style="font-size:.72rem;">Preview</span>
+                </div>
+              </div>
+            }
+
+            <input type="file" name="@item.InputName" accept="image/jpeg,image/png,image/webp"
+                   class="velora-input" style="padding:10px;height:auto;"
+                   onchange="previewImage(this,'@item.PreviewId')">
+          </div>
+        }
+
+        <div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;font-size:.72rem;color:var(--gray-500);">
+          <i class="fa-solid fa-circle-info me-1 text-gold"></i>
+          Formats: JPG, PNG, WebP &nbsp;·&nbsp; Max size: 5 MB each &nbsp;·&nbsp; Recommended: 600×800 px
+        </div>
+      </div>
+
+      <!-- Product Flags -->
+      <div style="background:white;border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm);margin-bottom:20px;">
+        <div style="font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="fa-solid fa-flag me-2"></i>Product Flags
+        </div>
+
+        @{
+          var flags = new List<dynamic>
+          {
+            new { PropFor = "IsActive", Icon = "fa-circle-check", Label = "Active — visible in store", Hint = "Uncheck to hide product from customers." },
+            new { PropFor = "IsFeatured", Icon = "fa-star", Label = "Featured on Homepage", Hint = "Shows in 'Featured Products' section." },
+            new { PropFor = "IsNewArrival", Icon = "fa-bolt", Label = "Mark as New Arrival", Hint = "Shows 'New' badge and in arrivals section." },
+            new { PropFor = "IsBestSeller", Icon = "fa-award", Label = "Mark as Best Seller", Hint = "Shows in 'Best Sellers' section." },
+            new { PropFor = "IsTrending", Icon = "fa-fire", Label = "Mark as Trending", Hint = "Shows 'Hot' badge and in trending section." }
+          };
+        }
+
+        @foreach (var item in flags)
+        {
+          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;margin-bottom:14px;padding:10px;border-radius:var(--radius-sm);transition:background .15s;"
+                 onmouseover="this.style.background='var(--gray-50)'"
+                 onmouseout="this.style.background='transparent'">
+                        <input type="checkbox"
+                               name="@item.PropFor"
+                               value="true"
+                               style="accent-color:var(--gold);width:16px;height:16px;margin-top:2px;flex-shrink:0;">
+            <div>
+              <div style="font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:7px;">
+                <i class="fa-solid @item.Icon text-gold" style="font-size:.8rem;"></i>
+                @item.Label
+              </div>
+              <div style="font-size:.72rem;color:var(--gray-400);margin-top:2px;">@item.Hint</div>
+            </div>
+          </label>
+        }
+      </div>
+
+      <!-- Submit Buttons -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="submit" class="btn-velora-primary w-100" style="justify-content:center;padding:14px;">
+          <i class="fa-solid fa-floppy-disk me-2"></i>
+          @(isEdit ? "Update Product" : "Create Product")
+        </button>
+        <a asp-action="Index" class="btn-velora-ghost w-100" style="text-align:center;padding:13px;">
+          Cancel
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+@section Scripts {
+<script>
+// ── Image preview ─────────────────────────────────────────────────
+function previewImage(input, previewId) {
+  const preview = document.getElementById(previewId);
+  if (!input.files || !input.files[0]) return;
+
+  const file   = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    // If preview is a div (placeholder), replace with img
+    if (preview.tagName === 'DIV') {
+      const img = document.createElement('img');
+      img.id    = previewId;
+      img.src   = e.target.result;
+      img.style.cssText = 'width:100%;height:140px;object-fit:cover;border-radius:6px;border:1.5px solid var(--gray-200);';
+      preview.replaceWith(img);
+    } else {
+      preview.src           = e.target.result;
+      preview.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Discount badge ────────────────────────────────────────────────
+function calcDiscount() {
+  const price    = parseFloat(document.getElementById('priceInput').value)    || 0;
+  const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+  const badge    = document.getElementById('discountBadge');
+
+  if (price > 0 && discount > 0 && discount < price) {
+    const pct = Math.round((1 - discount / price) * 100);
+    badge.textContent    = `✓ ${pct}% discount applied`;
+    badge.style.display  = 'block';
+  } else {
+    badge.style.display  = 'none';
+  }
+}
+
+// ── Stock warning ─────────────────────────────────────────────────
+function checkStock() {
+  const stock   = parseInt(document.getElementById('stockInput').value) || 0;
+  const warning = document.getElementById('stockWarning');
+  warning.style.display = (stock > 0 && stock <= 5) ? 'block' : 'none';
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  calcDiscount();
+  checkStock();
+});
+</script>
+}

@@ -1,0 +1,68 @@
+@model Velora.Models.Product
+
+<div class="product-card">
+  <div class="product-card-img-wrapper">
+    <!-- Badges -->
+    <div class="product-badge">
+      @if (Model.IsNewArrival)
+      { <span class="badge-pill badge-new">New</span> }
+      @if (Model.DiscountPercentage > 0)
+      { <span class="badge-pill badge-sale">-@Model.DiscountPercentage%</span> }
+      @if (Model.IsTrending)
+      { <span class="badge-pill badge-hot">Hot</span> }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="product-card-actions">
+      <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id"
+         class="card-action-btn" title="Quick View">
+        <i class="fa-regular fa-eye"></i>
+      </a>
+      <button class="card-action-btn @(Model.Id > 0 ? "" : "")"
+              data-wishlist data-product-id="@Model.Id" title="Wishlist">
+        <i class="fa-regular fa-heart"></i>
+      </button>
+    </div>
+
+    <!-- Image -->
+    <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">
+      <img src="@(Model.ImageUrl ?? "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600")"
+           alt="@Model.Name"
+           class="product-card-img"
+           onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600'">
+    </a>
+  </div>
+
+  <div class="product-card-body">
+    <div class="product-category-tag">@Model.Category?.Name</div>
+    <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">
+      <h3 class="product-name">@Model.Name</h3>
+    </a>
+
+    @if (Model.ReviewCount > 0)
+    {
+      <div class="product-rating">
+        @for (int i = 1; i <= 5; i++)
+        {
+          <i class="fa-@(i <= Math.Round(Model.AverageRating) ? "solid" : "regular") fa-star star-icon"></i>
+        }
+        <span class="rating-count">(@Model.ReviewCount)</span>
+      </div>
+    }
+
+    <div class="product-price-wrapper">
+      <span class="product-price">PKR @Model.FinalPrice.ToString("N0")</span>
+      @if (Model.DiscountPrice.HasValue && Model.DiscountPrice > 0)
+      {
+        <span class="product-price-original">@Model.Price.ToString("N0")</span>
+        <span class="product-discount">@Model.DiscountPercentage% OFF</span>
+      }
+    </div>
+  </div>
+
+  <div class="product-card-footer">
+    <button class="btn-add-cart-quick" data-quick-add data-product-id="@Model.Id">
+      <i class="fa-solid fa-bag-shopping"></i> Add to Cart
+    </button>
+  </div>
+</div>

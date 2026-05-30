@@ -1,0 +1,125 @@
+@* ===== DASHBOARD ===== *@
+@{
+    ViewData["Title"] = "My Dashboard";
+    var user = ViewBag.User as Velora.Models.ApplicationUser;
+    var recentOrders = ViewBag.RecentOrders as IEnumerable<Velora.Models.Order> ?? new List<Velora.Models.Order>();
+}
+@* This is the base layout for user pages - include sidebar *@
+<div style="background:var(--gray-50);min-height:80vh;padding:40px 0;">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Sidebar -->
+      @await Html.PartialAsync("_UserSidebar")
+
+      <!-- Main -->
+      <div class="col-lg-9">
+
+        <!-- Welcome Card -->
+        <div style="background:linear-gradient(135deg,var(--black),var(--dark-2));border-radius:var(--radius-lg);padding:28px;margin-bottom:24px;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-20px;top:-20px;width:160px;height:160px;border-radius:50%;background:rgba(201,168,76,.08);"></div>
+          <div style="position:relative;z-index:1;">
+            <div style="font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Welcome back</div>
+            <h2 style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:white;margin-bottom:4px;">@user?.FullName</h2>
+            <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0;">@user?.Email</p>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+                    @{
+                        var stats = new List<dynamic>
+    {
+        new
+        {
+            Icon = "fa-box",
+            Label = "Total Orders",
+            Value = Convert.ToString(ViewBag.OrderCount ?? 0),
+            Color = "stat-card-icon-gold"
+        },
+
+        new
+        {
+            Icon = "fa-heart",
+            Label = "Wishlist Items",
+            Value = "0",
+            Color = "stat-card-icon-dark"
+        },
+
+        new
+        {
+            Icon = "fa-star",
+            Label = "Reviews Given",
+            Value = "0",
+            Color = "stat-card-icon-green"
+        }
+    };
+                    }
+          }
+          @foreach (var s in stats)
+          {
+            <div class="col-4">
+              <div class="stat-card" style="border-left-width:3px;">
+                <div class="stat-card-icon @s.Color"><i class="fa-solid @s.Icon"></i></div>
+                <div class="stat-card-value">@s.Value</div>
+                <div class="stat-card-label">@s.Label</div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <span class="admin-table-title">Recent Orders</span>
+            <a asp-controller="User" asp-action="Orders" style="font-size:.78rem;color:var(--gold);">View All</a>
+          </div>
+          @if (recentOrders.Any())
+          {
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th><th>Date</th><th>Total</th><th>Status</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach (var order in recentOrders)
+                  {
+                    <tr>
+                      <td><strong>@order.OrderNumber</strong></td>
+                      <td>@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+                      <td>PKR @order.GrandTotal.ToString("N0")</td>
+                      <td>
+                        <span class="status-badge status-@order.Status.ToString().ToLower()">
+                          @order.Status
+                        </span>
+                      </td>
+                      <td>
+                        <a asp-controller="User" asp-action="OrderDetails" asp-route-id="@order.Id"
+                           class="btn-action btn-view" title="View">
+                          <i class="fa-solid fa-eye"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          else
+          {
+            <div class="empty-state" style="padding:40px;">
+              <div class="empty-state-icon" style="font-size:2rem;"><i class="fa-solid fa-box"></i></div>
+              <p class="empty-state-text">No orders yet.</p>
+              <a asp-controller="Shop" asp-action="Index" class="btn-velora-dark" style="font-size:.78rem;padding:10px 20px;">
+                Start Shopping
+              </a>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

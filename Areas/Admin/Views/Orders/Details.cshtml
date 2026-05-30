@@ -1,0 +1,129 @@
+@model Velora.Models.Order
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a asp-action="Index" class="btn-action btn-view"><i class="fa-solid fa-arrow-left"></i></a>
+  <div>
+    <h4 style="font-size:1.1rem;font-weight:700;margin:0;">
+      Order <span style="color:var(--gold);">@Model.OrderNumber</span>
+    </h4>
+    <div style="font-size:.78rem;color:var(--gray-500);">@Model.CreatedAt.ToString("dddd, MMMM dd, yyyy")</div>
+  </div>
+  <span class="status-badge status-@Model.Status.ToString().ToLower() ms-auto">@Model.Status</span>
+</div>
+
+<div class="row g-4">
+
+  <!-- Order Items + Customer -->
+  <div class="col-lg-8">
+
+    <div style="background:white;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:20px;">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Order Items</div>
+      <table class="admin-table">
+        <thead>
+          <tr><th>Product</th><th>Unit Price</th><th>Qty</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          @foreach (var item in Model.OrderItems)
+          {
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  @if (!string.IsNullOrEmpty(item.ProductImage))
+                  { <img src="@item.ProductImage" style="width:44px;height:52px;object-fit:cover;border-radius:4px;"> }
+                  <div>
+                    <div style="font-weight:600;font-size:.85rem;">@item.ProductName</div>
+                    @if (!string.IsNullOrEmpty(item.SelectedSize))
+                    { <div style="font-size:.72rem;color:var(--gray-400);">@item.SelectedSize @(!string.IsNullOrEmpty(item.SelectedColor) ? "· " + item.SelectedColor : "")</div> }
+                  </div>
+                </div>
+              </td>
+              <td>PKR @item.UnitPrice.ToString("N0")</td>
+              <td>@item.Quantity</td>
+              <td><strong>PKR @item.TotalPrice.ToString("N0")</strong></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Customer Info -->
+    <div style="background:white;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Customer & Shipping</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div style="font-size:.7rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Customer</div>
+          <div style="font-weight:600;">@Model.User?.FullName</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">@Model.User?.Email</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">@Model.User?.PhoneNumber</div>
+        </div>
+        <div class="col-md-6">
+          <div style="font-size:.7rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Shipping Address</div>
+          <div style="font-weight:600;">@Model.FullName</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">@Model.ShippingAddress</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">@Model.City @Model.PostalCode</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">@Model.PhoneNumber</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Summary + Update Status -->
+  <div class="col-lg-4">
+
+    <!-- Order Summary -->
+    <div style="background:white;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:20px;">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Summary</div>
+      <div class="cart-summary-row"><span>Subtotal</span><span>PKR @Model.SubTotal.ToString("N0")</span></div>
+      <div class="cart-summary-row">
+        <span>Shipping</span>
+        <span>@(Model.ShippingCharges == 0 ? "FREE" : "PKR " + Model.ShippingCharges.ToString("N0"))</span>
+      </div>
+      <div class="cart-summary-row"><span>Tax</span><span>PKR @Model.Tax.ToString("N0")</span></div>
+      <div class="cart-summary-row" style="border-top:2px solid var(--gray-200);margin-top:8px;padding-top:12px;">
+        <span style="font-weight:700;">Total</span>
+        <span style="font-weight:800;color:var(--gold);">PKR @Model.GrandTotal.ToString("N0")</span>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);font-size:.82rem;">
+        <div><strong>Payment:</strong> @Model.PaymentMethod.ToString().Replace("CreditDebitCard","Card")</div>
+        @if (Model.ShippedAt.HasValue)
+        { <div><strong>Shipped:</strong> @Model.ShippedAt?.ToString("MMM dd, yyyy")</div> }
+        @if (Model.DeliveredAt.HasValue)
+        { <div><strong>Delivered:</strong> @Model.DeliveredAt?.ToString("MMM dd, yyyy")</div> }
+      </div>
+    </div>
+
+    <!-- Update Status -->
+    <div style="background:white;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Update Status</div>
+      <form asp-action="UpdateStatus" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id">
+        <div class="mb-3">
+          <select name="status" class="velora-input" style="height:48px;">
+            @foreach (var status in Enum.GetValues<Velora.Models.OrderStatus>())
+            {
+                            <option value="@((int)status)" selected="@(Model.Status == status)">
+                                @status
+                            </option>
+            }
+          </select>
+        </div>
+        <button type="submit" class="btn-velora-primary w-100" style="justify-content:center;">
+          <i class="fa-solid fa-floppy-disk me-2"></i>Update Status
+        </button>
+      </form>
+
+      @if (Model.Notes != null)
+      {
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-400);margin-bottom:6px;">Customer Notes</div>
+          <p style="font-size:.83rem;color:var(--gray-600);margin:0;">@Model.Notes</p>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

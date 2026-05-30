@@ -1,0 +1,125 @@
+@model Velora.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="auth-page">
+  <div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+
+      <!-- Left Panel -->
+      <div class="col-lg-6 d-none d-lg-flex auth-left">
+        <div style="position:relative;z-index:2;max-width:440px;">
+          <div class="auth-brand">VELORA</div>
+          <p class="auth-tagline">
+            Join thousands of fashion-forward individuals who trust Velora for their premium wardrobe needs.
+          </p>
+          <div style="margin-top:48px;">
+            <div style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:var(--gold);line-height:1;">40%</div>
+            <div style="color:rgba(255,255,255,.6);font-size:.88rem;margin-top:4px;">Off your first order when you join today</div>
+          </div>
+        </div>
+        <div style="position:absolute;right:0;top:0;bottom:0;width:50%;background:url('https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800') center/cover;opacity:.2;"></div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="col-lg-6 d-flex align-items-center justify-content-center p-4" style="background:var(--gray-50);">
+        <div class="form-card animate-scaleIn">
+
+          <div class="text-center mb-5">
+            <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">Create Account</h2>
+            <p style="color:var(--gray-500);font-size:.85rem;">Join Velora and explore premium fashion</p>
+          </div>
+
+          <form asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="velora-alert velora-alert-error mb-3"></div>
+
+            <div class="mb-3">
+              <label class="velora-label">Full Name</label>
+              <input asp-for="FullName" class="velora-input" placeholder="Your full name">
+              <span asp-validation-for="FullName" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <div class="mb-3">
+              <label class="velora-label">Email Address</label>
+              <input asp-for="Email" class="velora-input" placeholder="you@example.com" autocomplete="email">
+              <span asp-validation-for="Email" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <div class="mb-3">
+              <label class="velora-label">Password</label>
+              <div style="position:relative;">
+                <input asp-for="Password" type="password" class="velora-input" id="regPwd"
+                       placeholder="Min. 6 characters" style="padding-right:44px;" autocomplete="new-password">
+                <button type="button" onclick="toggleRegPwd('regPwd','eyeReg')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);font-size:.85rem;">
+                  <i class="fa-regular fa-eye" id="eyeReg"></i>
+                </button>
+              </div>
+              <span asp-validation-for="Password" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <div class="mb-4">
+              <label class="velora-label">Confirm Password</label>
+              <input asp-for="ConfirmPassword" type="password" class="velora-input"
+                     placeholder="Repeat your password" autocomplete="new-password">
+              <span asp-validation-for="ConfirmPassword" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <!-- Password Strength -->
+            <div class="mb-4" id="strengthContainer" style="display:none;">
+              <div style="font-size:.7rem;color:var(--gray-500);margin-bottom:6px;">Password Strength</div>
+              <div style="height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden;">
+                <div id="strengthBar" style="height:100%;border-radius:2px;transition:all .3s;width:0%;background:var(--gold);"></div>
+              </div>
+              <div id="strengthText" style="font-size:.7rem;font-weight:600;margin-top:4px;"></div>
+            </div>
+
+            <button type="submit" class="btn-velora-primary w-100" style="justify-content:center;padding:15px;">
+              Create Account
+            </button>
+          </form>
+
+          <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--gray-200);">
+            <span style="font-size:.85rem;color:var(--gray-500);">Already have an account?</span>
+            <a asp-action="Login" style="font-size:.85rem;font-weight:700;color:var(--gold);margin-left:6px;">Sign In</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+function toggleRegPwd(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+  icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
+}
+document.getElementById('regPwd').addEventListener('input', function() {
+  const v = this.value; const c = document.getElementById('strengthContainer');
+  const bar = document.getElementById('strengthBar'); const txt = document.getElementById('strengthText');
+  if (!v.length) { c.style.display='none'; return; }
+  c.style.display='block';
+  let score = 0;
+  if (v.length >= 6) score++; if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++; if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const levels = [
+    {w:'20%',c:'#f44336',t:'Weak'},
+    {w:'40%',c:'#ff9800',t:'Fair'},
+    {w:'60%',c:'#ffc107',t:'Good'},
+    {w:'80%',c:'#8bc34a',t:'Strong'},
+    {w:'100%',c:'#4caf50',t:'Very Strong'}
+  ];
+  const l = levels[Math.min(score-1, 4)] || levels[0];
+  bar.style.width=l.w; bar.style.background=l.c;
+  txt.textContent=l.t; txt.style.color=l.c;
+});
+</script>
+}

@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Something Went Wrong";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="error-page">
+  <div class="container text-center">
+    <div class="error-code animate-fadeInUp" style="font-size:clamp(4rem,12vw,8rem);">
+      @(ViewBag.StatusCode ?? 500)
+    </div>
+    <h2 class="error-title animate-fadeInUp delay-100">Something Went Wrong</h2>
+    <p style="color:var(--gray-500);font-size:.95rem;max-width:420px;margin:16px auto 36px;line-height:1.7;"
+       class="animate-fadeInUp delay-200">
+      We encountered an unexpected error. Please try again or go back home.
+    </p>
+    <a asp-controller="Home" asp-action="Index" class="btn-velora-primary animate-fadeInUp delay-300">
+      <i class="fa-solid fa-house me-2"></i> Back to Home
+    </a>
+  </div>
+</div>

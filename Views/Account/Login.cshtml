@@ -1,0 +1,125 @@
+@model Velora.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="auth-page">
+  <div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+
+      <!-- Left Panel -->
+      <div class="col-lg-6 d-none d-lg-flex auth-left">
+        <div style="position:relative;z-index:2;max-width:440px;">
+          <div class="auth-brand">VELORA</div>
+          <p class="auth-tagline">
+            Your destination for premium fashion and luxury lifestyle products. Sign in to access your exclusive member benefits.
+          </p>
+          <div class="mt-5">
+            @foreach (var f in new[] {
+              new { Icon="fa-award", Text="Exclusive member deals & early access" },
+              new { Icon="fa-truck-fast", Text="Free shipping on orders over PKR 5,000" },
+              new { Icon="fa-heart", Text="Save favourites to your wishlist" },
+              new { Icon="fa-box", Text="Track your orders in real-time" },
+            })
+            {
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="fa-solid @f.Icon text-gold" style="font-size:.85rem;"></i>
+                </div>
+                <span style="color:rgba(255,255,255,.7);font-size:.88rem;">@f.Text</span>
+              </div>
+            }
+          </div>
+        </div>
+        <!-- Decorative image -->
+        <div style="position:absolute;right:0;top:0;bottom:0;width:50%;background:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800') center/cover;opacity:.2;"></div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="col-lg-6 d-flex align-items-center justify-content-center p-4" style="background:var(--gray-50);">
+        <div class="form-card animate-scaleIn">
+
+          <div class="text-center mb-5">
+            <a asp-controller="Home" asp-action="Index" class="d-lg-none d-inline-block mb-4">
+              <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;letter-spacing:3px;color:var(--black);">
+                VEL<span style="color:var(--gold);">ORA</span>
+              </div>
+            </a>
+            <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">Welcome Back</h2>
+            <p style="color:var(--gray-500);font-size:.85rem;">Sign in to your Velora account</p>
+          </div>
+
+          <form asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl">
+
+            <div asp-validation-summary="ModelOnly" class="velora-alert velora-alert-error mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+
+            <div class="mb-4">
+              <label class="velora-label">Email Address</label>
+              <input asp-for="Email" class="velora-input" placeholder="you@example.com" autocomplete="email">
+              <span asp-validation-for="Email" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="velora-label">Password</label>
+                <a asp-action="ForgotPassword" style="font-size:.75rem;color:var(--gold);">Forgot Password?</a>
+              </div>
+              <div style="position:relative;">
+                <input asp-for="Password" type="password" class="velora-input" placeholder="Enter your password"
+                       id="passwordInput" autocomplete="current-password" style="padding-right:44px;">
+                <button type="button" onclick="togglePwd()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);font-size:.85rem;">
+                  <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                </button>
+              </div>
+              <span asp-validation-for="Password" class="text-danger" style="font-size:.73rem;"></span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-4">
+              <input asp-for="RememberMe" type="checkbox" id="rememberMe" style="accent-color:var(--gold);width:15px;height:15px;">
+              <label for="rememberMe" style="font-size:.82rem;color:var(--gray-600);cursor:pointer;margin:0;">Remember me for 7 days</label>
+            </div>
+
+            <button type="submit" class="btn-velora-primary w-100" style="justify-content:center;padding:15px;">
+              Sign In
+            </button>
+          </form>
+
+          <div style="text-align:center;margin-top:28px;padding-top:24px;border-top:1px solid var(--gray-200);">
+            <span style="font-size:.85rem;color:var(--gray-500);">Don't have an account?</span>
+            <a asp-action="Register" style="font-size:.85rem;font-weight:700;color:var(--gold);margin-left:6px;">Create Account</a>
+          </div>
+
+          <!-- Demo Credentials -->
+          <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:var(--radius-sm);padding:14px;margin-top:20px;">
+            <div style="font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Demo Credentials</div>
+            <div style="font-size:.78rem;color:var(--gray-600);">
+              <div><strong>Admin:</strong> admin@velora.com / Admin@123456</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+function togglePwd() {
+  const input = document.getElementById('passwordInput');
+  const icon = document.getElementById('eyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+}
+</script>
+}

@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "FAQ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section style="background:var(--black);padding:60px 0;">
+  <div class="container text-center">
+    <span class="section-eyebrow">Help Center</span>
+    <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;color:white;margin-bottom:10px;">
+      Frequently Asked <span style="color:var(--gold);">Questions</span>
+    </h1>
+  </div>
+</section>
+
+<section class="section-padding">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        @{
+          var faqs = new[] {
+            new { Cat="Orders & Shipping", Items = new[] {
+              new { Q="How long does delivery take?", A="Standard delivery takes 2–4 business days across major cities in Pakistan. Remote areas may take 5–7 business days." },
+              new { Q="Is there free shipping?", A="Yes! Orders above PKR 5,000 qualify for free shipping. Orders below this threshold have a flat PKR 350 delivery fee." },
+              new { Q="Can I track my order?", A="Absolutely. Once your order is shipped, you'll receive an email with tracking information. You can also track from your account dashboard." },
+              new { Q="Can I change my shipping address?", A="You can change your address before the order is confirmed. Contact us immediately at support@velora.pk." },
+            }},
+            new { Cat="Returns & Exchanges", Items = new[] {
+              new { Q="What is your return policy?", A="We offer a 14-day return window from the date of delivery. Items must be unused, unworn, with original tags attached." },
+              new { Q="How do I initiate a return?", A="Go to your account, find the order, and click 'Return Request'. Our team will contact you within 24 hours." },
+              new { Q="Are there any non-returnable items?", A="Swimwear, innerwear, and items marked 'Final Sale' cannot be returned for hygiene and policy reasons." },
+            }},
+            new { Cat="Payments", Items = new[] {
+              new { Q="What payment methods do you accept?", A="We accept Cash on Delivery, JazzCash, EasyPaisa, and Credit/Debit Cards (Visa & Mastercard)." },
+              new { Q="Is it safe to use my card on Velora?", A="Yes. All card transactions are processed through a secure, encrypted payment gateway." },
+              new { Q="When is my card charged?", A="Your card is charged at the time of order placement." },
+            }},
+            new { Cat="Products & Sizing", Items = new[] {
+              new { Q="How do I find my size?", A="Each product page includes a sizing guide. We recommend measuring yourself and comparing against the guide for the best fit." },
+              new { Q="Are the products authentic?", A="Every product at Velora is 100% authentic. We source directly from verified manufacturers and premium brands." },
+              new { Q="What if I receive a damaged item?", A="Contact us within 48 hours of delivery with photos at support@velora.pk. We'll resolve it immediately." },
+            }},
+          };
+        }
+
+        @foreach (var group in faqs)
+        {
+          <div style="margin-bottom:40px;">
+            <h3 style="font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-200);">
+              @group.Cat
+            </h3>
+            <div class="accordion" id="faq-@group.Cat.Replace(" ","")">
+              @foreach (var (faq, idx) in group.Items.Select((f, i) => (f, i)))
+              {
+                var id = $"faq-{group.Cat.Replace(" ", "")}-{idx}";
+                <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;">
+                  <button style="width:100%;background:white;border:none;padding:18px 20px;text-align:left;font-size:.88rem;font-weight:600;color:var(--gray-900);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s;"
+                          type="button"
+                          data-bs-toggle="collapse" data-bs-target="#@id"
+                          onmouseover="this.style.background='var(--gray-50)'"
+                          onmouseout="this.style.background='white'">
+                    @faq.Q
+                    <i class="fa-solid fa-chevron-down" style="color:var(--gold);font-size:.75rem;transition:transform .3s;flex-shrink:0;margin-left:12px;"></i>
+                  </button>
+                  <div id="@id" class="collapse">
+                    <div style="padding:0 20px 18px;font-size:.85rem;color:var(--gray-600);line-height:1.7;background:white;border-top:1px solid var(--gray-100);">
+                      @faq.A
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Still need help -->
+        <div style="background:var(--black);border-radius:var(--radius-xl);padding:40px;text-align:center;">
+          <div style="font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Still Need Help?</div>
+          <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:white;margin-bottom:12px;">
+            Our Team is Here for You
+          </h3>
+          <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:24px;">
+            Can't find your answer? Contact our support team and we'll get back to you within a few hours.
+          </p>
+          <a asp-controller="Home" asp-action="Contact" class="btn-velora-primary">
+            <i class="fa-solid fa-envelope me-2"></i> Contact Support
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

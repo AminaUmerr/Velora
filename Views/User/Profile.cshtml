@@ -1,0 +1,58 @@
+@* Profile View *@
+@model Velora.ViewModels.EditProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+<div style="background:var(--gray-50);min-height:80vh;padding:40px 0;">
+  <div class="container">
+    <div class="row g-4">
+      @await Html.PartialAsync("_UserSidebar")
+      <div class="col-lg-9">
+        <div style="background:white;border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow-sm);">
+          <h4 style="font-weight:700;font-size:1.1rem;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--gray-200);">
+            <i class="fa-solid fa-user-pen text-gold me-2"></i>Edit Profile
+          </h4>
+          <form asp-action="Profile" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="velora-label">Full Name</label>
+                <input asp-for="FullName" class="velora-input">
+                <span asp-validation-for="FullName" class="text-danger" style="font-size:.73rem;"></span>
+              </div>
+              <div class="col-md-6">
+                <label class="velora-label">Phone Number</label>
+                <input asp-for="PhoneNumber" class="velora-input" placeholder="+92 300 0000000">
+              </div>
+              <div class="col-md-6">
+                <label class="velora-label">City</label>
+                <input asp-for="City" class="velora-input" placeholder="e.g. Lahore">
+              </div>
+              <div class="col-md-8">
+                <label class="velora-label">Address</label>
+                <input asp-for="Address" class="velora-input" placeholder="Street, Area">
+              </div>
+              <div class="col-md-4">
+                <label class="velora-label">Postal Code</label>
+                <input asp-for="PostalCode" class="velora-input">
+              </div>
+              <div class="col-12">
+                <label class="velora-label">Profile Photo</label>
+                <input asp-for="ProfileImageFile" type="file" accept="image/*" class="velora-input" style="padding:10px;">
+                @if (!string.IsNullOrEmpty(Model.ExistingProfileImage))
+                {
+                  <img src="@Model.ExistingProfileImage" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-top:10px;">
+                }
+              </div>
+              <div class="col-12 pt-2">
+                <button type="submit" class="btn-velora-primary">
+                  <i class="fa-solid fa-floppy-disk me-2"></i>Save Changes
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

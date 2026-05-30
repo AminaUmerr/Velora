@@ -1,0 +1,71 @@
+@model IEnumerable<Velora.Models.Order>
+@{
+    ViewData["Title"] = "My Orders";
+}
+<div style="background:var(--gray-50);min-height:80vh;padding:40px 0;">
+  <div class="container">
+    <div class="row g-4">
+      @await Html.PartialAsync("_UserSidebar")
+      <div class="col-lg-9">
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <span class="admin-table-title"><i class="fa-solid fa-box text-gold me-2"></i>My Orders</span>
+            <span style="font-size:.78rem;color:var(--gray-500);">@Model.Count() total orders</span>
+          </div>
+          @if (Model.Any())
+          {
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach (var order in Model)
+                  {
+                    <tr>
+                      <td><strong style="color:var(--gold);">@order.OrderNumber</strong></td>
+                      <td>@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+                      <td>@order.OrderItems.Count items</td>
+                      <td style="font-size:.78rem;">@order.PaymentMethod.ToString().Replace("CreditDebitCard","Card")</td>
+                      <td><strong>PKR @order.GrandTotal.ToString("N0")</strong></td>
+                      <td>
+                        <span class="status-badge status-@order.Status.ToString().ToLower()">
+                          @order.Status
+                        </span>
+                      </td>
+                      <td>
+                        <a asp-controller="User" asp-action="OrderDetails" asp-route-id="@order.Id"
+                           class="btn-action btn-view" title="View Details">
+                          <i class="fa-solid fa-eye"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          else
+          {
+            <div class="empty-state" style="padding:60px 20px;">
+              <div class="empty-state-icon"><i class="fa-solid fa-box-open"></i></div>
+              <h4 class="empty-state-title">No Orders Yet</h4>
+              <p class="empty-state-text">You haven't placed any orders. Start shopping to fill this space!</p>
+              <a asp-controller="Shop" asp-action="Index" class="btn-velora-primary">
+                <i class="fa-solid fa-store me-2"></i> Shop Now
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

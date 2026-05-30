@@ -1,0 +1,27 @@
+============================================================
+  MIGRATION REQUIRED — Run this after replacing the files
+============================================================
+
+Because Order.cs got two new fields (MaskedCardNumber, CardHolderName),
+you MUST run a new migration so SQL Server knows about them.
+
+STEP 1 — Open Visual Studio → Tools → NuGet Package Manager → Package Manager Console
+
+STEP 2 — Run:
+
+    Add-Migration AddCardFieldsToOrder
+
+STEP 3 — Then apply it:
+
+    Update-Database
+
+That's it. No other database changes are needed.
+
+============================================================
+  IF you already have data and get errors, run instead:
+============================================================
+
+    Add-Migration AddCardFieldsToOrder -Force
+    Update-Database
+
+============================================================
