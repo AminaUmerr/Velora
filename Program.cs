@@ -104,13 +104,20 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
+
 using (var scope = app.Services.CreateScope())
 {
-    try   { await DbInitializer.SeedAsync(scope.ServiceProvider); }
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+        await DbInitializer.SeedAsync(scope.ServiceProvider);
+    }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Seeding error.");
+        logger.LogError(ex, "Migration or seeding failed.");
+        // App continues to start instead of crashing
     }
 }
 
